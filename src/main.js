@@ -1,11 +1,14 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { createPerson, updatePerson } from './people.js';
 
 // ---------- 模型清单 ----------
-// 所有模型来自 Kenney 官方 Starter Kit（CC0），见 public/models/LICENSE.txt
+// Kenney 官方 Starter Kit（CC0）+ Quaternius Universal Base Characters，见 public/models/LICENSE.txt
 const MODELS = {
   character: 'models/character/character.glb',
+  male: 'models/people/male.glb',
+  female: 'models/people/female.glb',
   truckRed: 'models/vehicles/vehicle-truck-red.glb',
   truckGreen: 'models/vehicles/vehicle-truck-green.glb',
   truckYellow: 'models/vehicles/vehicle-truck-yellow.glb',
@@ -143,9 +146,9 @@ const rand = () => {
 
 // ---------- 可选中的对象（侧边栏 & 点击） ----------
 const items = []; // { id, label, group, object, follow }
-function register(id, label, group, object, follow = false) {
+function register(id, label, group, object, follow = false, minDist = 11) {
   object.userData.itemId = id;
-  items.push({ id, label, group, object, follow });
+  items.push({ id, label, group, object, follow, minDist });
 }
 
 // ---------- 状态 ----------
@@ -154,6 +157,8 @@ let mixer = null;
 const actions = {};
 let currentAction = null;
 const vehicles = [];
+const people = [];
+const PEOPLE_AREA = { minR: 4, maxR: 13 }; // 在公路内侧散步
 
 const charState = {
   velocityY: 0,
@@ -184,6 +189,45 @@ async function init() {
   }
   playAction('idle');
   register('character', '机器人小人', '人物', character, true);
+
+  // --- 真人比例的男女（Quaternius） ---
+  const texLoader = new THREE.TextureLoader(manager);
+  const loadSkin = async (url) => {
+    const t = await texLoader.loadAsync(url);
+    t.flipY = false; // glTF 贴图约定
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  };
+  const [maleLight, femaleLight] = await Promise.all([
+    loadSkin('models/people/male-light.webp'),
+    loadSkin('models/people/female-light.webp'),
+  ]);
+  const peopleDefs = [
+    {
+      id: 'man1', label: '男士 1', src: gltfs.male, skin: null, height: 1.95, pos: [-4, 3],
+      outfit: { shirt: 0xf2f2ee, bottom: 0x1f2a44, tie: 0x8a1c2b },
+    },
+    {
+      id: 'man2', label: '男士 2', src: gltfs.male, skin: maleLight, height: 1.9, pos: [5, -3],
+      outfit: { shirt: 0xe9eef5, jacket: 0x34383f, bottom: 0x34383f, tie: 0x2a4d8f },
+    },
+    {
+      id: 'woman1', label: '女士 1', src: gltfs.female, skin: null, height: 1.8, pos: [-3, -5],
+      outfit: { shirt: 0xb9d3ee, bottom: 0x1d1d22, skirt: true },
+    },
+    {
+      id: 'woman2', label: '女士 2', src: gltfs.female, skin: femaleLight, height: 1.82, pos: [4, 5],
+      outfit: { shirt: 0xf1e6d2, bottom: 0x6b6f76, shoes: 0x5a3a2a },
+    },
+  ];
+  for (const def of peopleDefs) {
+    const person = createPerson(def.src.scene, { skin: def.skin, height: def.height, outfit: def.outfit });
+    person.object.position.set(def.pos[0], 0, def.pos[1]);
+    person.object.rotation.y = rand() * Math.PI * 2;
+    scene.add(person.object);
+    people.push(person);
+    register(def.id, def.label, '人物', person.object, true, 6);
+  }
 
   // --- 车辆 ---
   const mid = (ROAD_INNER + ROAD_OUTER) / 2;
@@ -371,7 +415,7 @@ function focusItem(id, instant = false) {
   const box = new THREE.Box3().setFromObject(item.object);
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3()).length();
-  const dist = THREE.MathUtils.clamp(size * 1.8, 11, 40);
+  const dist = THREE.MathUtils.clamp(size * 1.8, item.minDist, 40);
 
   // 保持当前观察方向，只调整距离
   const dir = camera.position.clone().sub(controls.target).normalize();
@@ -536,6 +580,7 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.05);
   updateCharacter(dt);
   for (const v of vehicles) placeVehicle(v, dt);
+  for (const p of people) updatePerson(p, dt, PEOPLE_AREA);
   if (mixer) mixer.update(dt);
   updateCamera(dt);
   controls.update();

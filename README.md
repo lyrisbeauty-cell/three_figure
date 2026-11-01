@@ -33,7 +33,7 @@ npm run dev
 
 ## 模型来源
 
-所有模型都来自 [Kenney](https://kenney.nl)，采用 **CC0** 协议（可商用，不要求署名），取自 Kenney 官方 GitHub 仓库：
+除 4 个真人比例的男女外，模型都来自 [Kenney](https://kenney.nl)，采用 **CC0** 协议（可商用，不要求署名），取自 Kenney 官方 GitHub 仓库：
 
 | 类别 | 模型 | 来源 |
 |---|---|---|
@@ -42,8 +42,19 @@ npm run dev
 | 植物 | 树丛、高树丛、草坪块 | [Starter-Kit-City-Builder](https://github.com/KenneyNL/Starter-Kit-City-Builder) |
 | 植物 | 森林 | Starter-Kit-Racing |
 | 植物 | 小草 | Starter-Kit-3D-Platformer |
+| 人物 | 男士 ×2、女士 ×2（办公室打扮） | [Quaternius Universal Base Characters](https://quaternius.com/packs/universalbasecharacters.html) |
 
 详见 `public/models/LICENSE.txt`。
+
+### 关于男女人物
+
+Quaternius 的 Universal Base Characters 是「基础人体」：只穿内衣、没有头发、也不带动画。为了放进场景，`src/people.js` 做了三件事：
+
+- **穿衣服**：着色器按身体部位上色（衬衫 / 西装 / 领带 / 裤子或裙子 / 鞋），颜色在 `src/main.js` 的 `peopleDefs` 里改
+- **放下手臂**：把 T 字姿势的手臂转下来
+- **走路动画**：用代码摆动大腿、小腿和手臂，人物会在公路内侧随机散步、停下休息
+
+想要更真实的衣服和动作，可以下载 Quaternius 的服装包和 Universal Animation Library 替换。
 
 ### 想加更多模型？
 
