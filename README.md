@@ -15,6 +15,15 @@ npm run dev
 
 打包静态文件：`npm run build`，产物在 `dist/`，可以直接放到 GitHub Pages 或任意静态服务器上。
 
+## 部署到 GitHub Pages
+
+仓库里已经带了工作流 `.github/workflows/deploy.yml`，推送到 `main` 后会自动构建并发布。第一次需要手动打开一次：
+
+1. 仓库 **Settings → Pages → Build and deployment → Source** 选 **GitHub Actions**
+   （私有仓库需要 GitHub Pro 等付费套餐，免费账户需先把仓库设为 Public）
+2. 把代码合并到 `main`，或在 **Actions → Deploy to GitHub Pages → Run workflow** 手动运行
+3. 部署完成后访问 `https://lyrisbeauty-cell.github.io/three_figure/`
+
 ## 玩法
 
 - `W A S D` / 方向键：移动人物，`空格`：跳跃
