@@ -1,0 +1,27 @@
+{
+  "name": "three-figure",
+  "version": "1.0.0",
+  "description": "three.js 开源模型演示：人物、车辆、植物",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lyrisbeauty-cell/three_figure.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lyrisbeauty-cell/three_figure/issues"
+  },
+  "homepage": "https://github.com/lyrisbeauty-cell/three_figure#readme",
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^6.4.5"
+  },
+  "private": true,
+  "type": "module"
+}

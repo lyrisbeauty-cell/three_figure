@@ -1,0 +1,11 @@
+本目录下的所有 3D 模型与贴图来自 Kenney (https://kenney.nl)，以 CC0 1.0 协议发布：
+https://creativecommons.org/publicdomain/zero/1.0/
+
+来源（Kenney 官方 GitHub 仓库）：
+- character/        https://github.com/KenneyNL/Starter-Kit-3D-Platformer
+- vehicles/         https://github.com/KenneyNL/Starter-Kit-Racing
+- plants/grass*.glb https://github.com/KenneyNL/Starter-Kit-City-Builder
+- plants/grass-small.glb https://github.com/KenneyNL/Starter-Kit-3D-Platformer
+- plants/forest/decoration-forest.glb https://github.com/KenneyNL/Starter-Kit-Racing
+
+CC0 不要求署名，这里注明出处是为了方便追溯。
