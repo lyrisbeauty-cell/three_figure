@@ -201,6 +201,13 @@ export function createPerson(source, { skin = null, height = 1.9, outfit = null,
   const person = {
     object: holder,
     rig,
+    pelvisHeight: modelPos(holder, bones.pelvis).y, // 站立时骨盆离地高度，坐下时用来对齐座位
+    pose: 'stand', // 'stand' | 'sit'
+    seat: null, // 坐姿：{ height, style: 'desk' | 'sofa' }
+    path: null, // 按路线走：[{ pos: Vector3, wait: 秒, face: 朝向 }]
+    pathIndex: -1,
+    faceYaw: null, // 停下时面向的方向
+    gesture: false, // 站着聊天时的手势
     phase: Math.random() * Math.PI * 2,
     walkWeight: 0,
     target: null,
@@ -229,18 +236,79 @@ function swing(part, angle) {
  * 每帧更新：在区域内随机散步
  * @param area { minR, maxR } 允许活动的圆环范围
  */
+/**
+ * 让人坐下。
+ * @param seat { height: 座面高度, style: 'desk'（打字）| 'sofa'（靠着休息） }
+ */
+export function sitDown(p, seat) {
+  p.pose = 'sit';
+  p.seat = seat;
+}
+
+function updateSitting(p, dt) {
+  const r = p.rig;
+  const t = p.time;
+  const sofa = p.seat.style === 'sofa';
+  // 大腿向前抬平，小腿垂下
+  swing(r.thigh_l, -1.45);
+  swing(r.thigh_r, -1.45);
+  swing(r.calf_l, 1.45);
+  swing(r.calf_r, 1.45);
+  if (sofa) {
+    // 靠在沙发上，手放在腿上
+    swing(r.spine_01, -0.22 + Math.sin(t * 1.4) * 0.01);
+    swing(r.upperarm_l, -0.3);
+    swing(r.upperarm_r, -0.3);
+    swing(r.lowerarm_l, -0.95);
+    swing(r.lowerarm_r, -0.95);
+  } else {
+    // 身体稍微前倾，双手放在键盘上打字
+    swing(r.spine_01, 0.06 + Math.sin(t * 1.4) * 0.01);
+    const typeL = Math.max(0, Math.sin(t * 11 + p.phase)) * 0.06;
+    const typeR = Math.max(0, Math.sin(t * 13 + p.phase + 1.7)) * 0.06;
+    swing(r.upperarm_l, -0.3);
+    swing(r.upperarm_r, -0.3);
+    swing(r.lowerarm_l, -1.25 - typeL);
+    swing(r.lowerarm_r, -1.25 - typeR);
+  }
+  // 骨盆落在座面上
+  p.object.position.y = p.seat.height + 0.1 - p.pelvisHeight;
+}
+
+// 下一个目标点：有路线就沿路线走，否则在圆环区域里随机挑
+function nextTarget(p, area) {
+  if (p.path) {
+    p.pathIndex = (p.pathIndex + 1) % p.path.length;
+    return p.path[p.pathIndex].pos.clone();
+  }
+  const a = Math.random() * Math.PI * 2;
+  const r = area.minR + Math.random() * (area.maxR - area.minR);
+  return new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r);
+}
+
+function turnTowards(obj, yaw, dt, speed) {
+  let diff = yaw - obj.rotation.y;
+  diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+  obj.rotation.y += diff * Math.min(1, dt * speed);
+  return diff;
+}
+
 export function updatePerson(p, dt, area) {
   p.time += dt;
   const obj = p.object;
+  if (p.pose === 'sit') {
+    updateSitting(p, dt);
+    return;
+  }
 
   // 选目标、走过去、停一会儿
   let moving = false;
   if (!p.target) {
     p.waitTime -= dt;
+    if (p.faceYaw !== null) turnTowards(obj, p.faceYaw, dt, 4);
     if (p.waitTime <= 0) {
-      const a = Math.random() * Math.PI * 2;
-      const r = area.minR + Math.random() * (area.maxR - area.minR);
-      p.target = new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r);
+      p.faceYaw = null;
+      p.target = nextTarget(p, area);
     }
   } else {
     _v1.copy(p.target).sub(obj.position);
@@ -248,14 +316,17 @@ export function updatePerson(p, dt, area) {
     const dist = _v1.length();
     if (dist < 0.3) {
       p.target = null;
-      p.waitTime = 1.5 + Math.random() * 3;
+      if (p.path) {
+        const wp = p.path[p.pathIndex];
+        p.waitTime = wp.wait ?? 0;
+        p.faceYaw = wp.face ?? null;
+      } else {
+        p.waitTime = 1.5 + Math.random() * 3;
+      }
     } else {
       moving = true;
       _v1.normalize();
-      const targetYaw = Math.atan2(_v1.x, _v1.z);
-      let diff = targetYaw - obj.rotation.y;
-      diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-      obj.rotation.y += diff * Math.min(1, dt * 5);
+      const diff = turnTowards(obj, Math.atan2(_v1.x, _v1.z), dt, 5);
       // 先转向再加速，避免原地横移
       const facing = Math.max(0, Math.cos(diff));
       obj.position.addScaledVector(_v1, p.speed * facing * p.walkWeight * dt);
@@ -278,10 +349,13 @@ export function updatePerson(p, dt, area) {
 
   // 手臂与腿反向摆动；待机时轻微晃动
   const idle = Math.sin(p.time * 1.6) * 0.03 * (1 - w);
+  // 聊天手势：一只手抬起来比划
+  const talk = p.gesture ? (1 - w) * (0.5 + 0.5 * Math.sin(p.time * 0.7)) : 0;
+  const wave = Math.sin(p.time * 3.1) * 0.15 * talk;
   swing(p.rig.upperarm_l, s * 0.35 * w + idle);
-  swing(p.rig.upperarm_r, -s * 0.35 * w + idle);
+  swing(p.rig.upperarm_r, -s * 0.35 * w + idle - 0.35 * talk);
   swing(p.rig.lowerarm_l, -0.25 - Math.max(0, s) * 0.25 * w);
-  swing(p.rig.lowerarm_r, -0.25 - Math.max(0, -s) * 0.25 * w);
+  swing(p.rig.lowerarm_r, -0.25 - Math.max(0, -s) * 0.25 * w - 0.9 * talk + wave);
 
   // 呼吸 / 走路时身体轻微上下
   swing(p.rig.spine_01, Math.sin(p.time * 1.6) * 0.015 * (1 - w) - 0.04 * w);
