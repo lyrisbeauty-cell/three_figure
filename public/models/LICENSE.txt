@@ -15,5 +15,7 @@ https://quaternius.com/packs/universalbasecharacters.html
 - male.glb / female.glb：由包内 Superhero_Male/Female_FullBody.gltf 转换而来
   （修正了缺失的贴图引用，贴图压缩为 1024px WebP）
 - male-light.webp / female-light.webp：包内浅肤色版本的底色贴图
+- hair/*.glb：包内的头发模型（Hair_*.gltf），同样转成 GLB，贴图压缩为 512px WebP。
+  头发贴图是灰色的，发色在代码里染色
 衣服颜色是运行时在着色器里画上去的（见 src/people.js），并未修改模型本身。
 使用协议以 Quaternius 官网该页面的说明为准。

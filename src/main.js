@@ -9,6 +9,11 @@ const MODELS = {
   character: 'models/character/character.glb',
   male: 'models/people/male.glb',
   female: 'models/people/female.glb',
+  hairBuzzed: 'models/people/hair/hair-buzzed.glb',
+  hairBeard: 'models/people/hair/hair-beard.glb',
+  hairParted: 'models/people/hair/hair-simpleparted.glb',
+  hairBuns: 'models/people/hair/hair-buns.glb',
+  hairLong: 'models/people/hair/hair-long.glb',
   truckRed: 'models/vehicles/vehicle-truck-red.glb',
   truckGreen: 'models/vehicles/vehicle-truck-green.glb',
   truckYellow: 'models/vehicles/vehicle-truck-yellow.glb',
@@ -205,23 +210,27 @@ async function init() {
   const peopleDefs = [
     {
       id: 'man1', label: '男士 1', src: gltfs.male, skin: null, height: 1.95, pos: [-4, 3],
+      hair: [{ scene: gltfs.hairBuzzed.scene, color: 0x2b2420 }, { scene: gltfs.hairBeard.scene, color: 0x2b2420 }],
       outfit: { shirt: 0xf2f2ee, bottom: 0x1f2a44, tie: 0x8a1c2b },
     },
     {
       id: 'man2', label: '男士 2', src: gltfs.male, skin: maleLight, height: 1.9, pos: [5, -3],
+      hair: [{ scene: gltfs.hairParted.scene, color: 0x8a5a36 }],
       outfit: { shirt: 0xe9eef5, jacket: 0x34383f, bottom: 0x34383f, tie: 0x2a4d8f },
     },
     {
       id: 'woman1', label: '女士 1', src: gltfs.female, skin: null, height: 1.8, pos: [-3, -5],
+      hair: [{ scene: gltfs.hairBuns.scene, color: 0x2a201b }],
       outfit: { shirt: 0xb9d3ee, bottom: 0x1d1d22, skirt: true },
     },
     {
       id: 'woman2', label: '女士 2', src: gltfs.female, skin: femaleLight, height: 1.82, pos: [4, 5],
+      hair: [{ scene: gltfs.hairLong.scene, color: 0xd9a86a }],
       outfit: { shirt: 0xf1e6d2, bottom: 0x6b6f76, shoes: 0x5a3a2a },
     },
   ];
   for (const def of peopleDefs) {
-    const person = createPerson(def.src.scene, { skin: def.skin, height: def.height, outfit: def.outfit });
+    const person = createPerson(def.src.scene, { skin: def.skin, height: def.height, outfit: def.outfit, hair: def.hair });
     person.object.position.set(def.pos[0], 0, def.pos[1]);
     person.object.rotation.y = rand() * Math.PI * 2;
     scene.add(person.object);
