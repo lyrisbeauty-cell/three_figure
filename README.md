@@ -4,7 +4,19 @@
 
 ![screenshot](docs/screenshot.png)
 
-## 运行
+## 办公室场景
+
+第二个页面 `office.html`：一个等距视角的「剖面办公室」小模型，在小镇页面左侧面板点「进入办公室场景」即可进入。
+
+![office](docs/office.png)
+
+- 两面墙 + 木地板，夜景窗户、电视、书架、咖啡角、自动售货机、游戏机、储物柜
+- 4 组工位（笔记本电脑、椅子、云朵地毯），沙发休息区，白板讨论区
+- 11 位同事：6 人在工位打字，1 人坐在沙发上，2 人在白板前聊天，2 人沿过道走去咖啡角 / 游戏机再走回来
+- 左侧面板可以按「区域」或「同事」切换镜头
+
+家具都是用 three.js 的几何体搭的（`src/office.js`），没有额外的模型文件；人物沿用 Quaternius 模型和 `src/people.js` 的坐姿、走路、聊天动作。
+
 
 ```bash
 npm install
@@ -48,9 +60,10 @@ npm run dev
 
 ### 关于男女人物
 
-Quaternius 的 Universal Base Characters 是「基础人体」：只穿内衣、没有头发、也不带动画。为了放进场景，`src/people.js` 做了三件事：
+Quaternius 的 Universal Base Characters 是「基础人体」：只穿内衣、也不带动画，头发是单独的模型。为了放进场景，`src/people.js` 做了四件事：
 
 - **穿衣服**：着色器按身体部位上色（衬衫 / 西装 / 领带 / 裤子或裙子 / 鞋），颜色在 `src/main.js` 的 `peopleDefs` 里改
+- **戴上头发**：把头发模型挂到头部骨骼上，跟着头一起动；发型和发色在 `peopleDefs` 的 `hair` 里改（可选：寸头、侧分、胡子、盘发、长发，`public/models/people/hair/` 里还有一个女式寸头没用上）
 - **放下手臂**：把 T 字姿势的手臂转下来
 - **走路动画**：用代码摆动大腿、小腿和手臂，人物会在公路内侧随机散步、停下休息
 
