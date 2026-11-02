@@ -48,9 +48,10 @@ npm run dev
 
 ### 关于男女人物
 
-Quaternius 的 Universal Base Characters 是「基础人体」：只穿内衣、没有头发、也不带动画。为了放进场景，`src/people.js` 做了三件事：
+Quaternius 的 Universal Base Characters 是「基础人体」：只穿内衣、也不带动画，头发是单独的模型。为了放进场景，`src/people.js` 做了四件事：
 
 - **穿衣服**：着色器按身体部位上色（衬衫 / 西装 / 领带 / 裤子或裙子 / 鞋），颜色在 `src/main.js` 的 `peopleDefs` 里改
+- **戴上头发**：把头发模型挂到头部骨骼上，跟着头一起动；发型和发色在 `peopleDefs` 的 `hair` 里改（可选：寸头、侧分、胡子、盘发、长发，`public/models/people/hair/` 里还有一个女式寸头没用上）
 - **放下手臂**：把 T 字姿势的手臂转下来
 - **走路动画**：用代码摆动大腿、小腿和手臂，人物会在公路内侧随机散步、停下休息
 
